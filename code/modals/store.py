@@ -1,19 +1,15 @@
 import sqlite3
 from db import db
 
-class ItemModal(db.Model):
-    __tablename__ = 'items'
+class StoreModal(db.Model):
+    __tablename__ = 'stores'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
-    price = db.Column(db.Float(precision=2))
-    store_id = db.Column(db.Integer, db.ForeignKey('stores.id'))
-    store = db.relationship('StoreModal')
+    items = db.relationship('ItemModal', lazy='dynamic')
 
-    def __init__(self, name, price, store_id) -> None:
+    def __init__(self, name) -> None:
         self.name = name
-        self.price = price
-        self.store_id = store_id
 
     @classmethod
     def find_by_name(cls, name):
@@ -24,7 +20,7 @@ class ItemModal(db.Model):
         db.session.commit()
 
     def get_json(self):
-        return {'name': self.name, 'price': self.price}
+        return {'name': self.name, 'items': [item.get_json() for item in self.items.all()]}
 
     def delete_from_db(self):
         db.session.delete(self)
